@@ -11,5 +11,6 @@ class ICropView {
     interface Proxy {
         fun getPaper(): ImageView
         fun getPaperRect(): PaperRectangle
+        fun getCroppedPaper(): ImageView
     }
 }

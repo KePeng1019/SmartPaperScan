@@ -28,7 +28,7 @@
             android:name=".crop.CropActivity"
             android:label="@string/crop"
             android:launchMode="singleTask"
-            android:theme="@style/ThemeOverlay.AppCompat" />
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 
 </manifest>

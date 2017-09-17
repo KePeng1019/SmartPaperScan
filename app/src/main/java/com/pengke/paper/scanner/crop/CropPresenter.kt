@@ -2,12 +2,20 @@ package com.pengke.paper.scanner.crop
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.util.Log
+import android.view.View
 import com.pengke.paper.scanner.SourceManager
 import com.pengke.paper.scanner.processor.Corners
+import com.pengke.paper.scanner.processor.TAG
+import com.pengke.paper.scanner.processor.cropPicture
+import com.pengke.paper.scanner.processor.enhancePicture
 import org.opencv.android.Utils
 
 import org.opencv.core.Mat
+import rx.Observable
+import rx.Subscriber
+import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
 
 
 class CropPresenter {
@@ -16,8 +24,8 @@ class CropPresenter {
     private val picture: Mat? = SourceManager.pic
     private val corners: Corners? = SourceManager.corners
     private var croppedPicture: Mat? = null
-    private var enhancePicture: Mat? = null
-    private var blackPicture: Mat? = null
+    private var enhancedPicture: Bitmap? = null
+    private var croppedBitmap: Bitmap? = null
 
     constructor(context: Context, iCropView: ICropView.Proxy) {
         this.context = context
@@ -29,19 +37,44 @@ class CropPresenter {
     }
 
     fun crop() {
-
+        if (picture == null) {
+            Log.i(TAG, "picture null?")
+            return
+        }
+        Observable.create(Observable.OnSubscribe { t: Subscriber<in Mat>? ->
+            t?.onNext(cropPicture(picture, iCropView.getPaperRect().getCorners2Crop()))
+        })
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { pc ->
+                    kotlin.run {
+                        Log.i(TAG, "cropped picture: " + pc.toString())
+                        croppedPicture = pc
+                        croppedBitmap = Bitmap.createBitmap(pc.width(), pc.height(), Bitmap.Config.ARGB_8888)
+                        Utils.matToBitmap(pc, croppedBitmap)
+                        iCropView.getCroppedPaper().setImageBitmap(croppedBitmap)
+                        iCropView.getPaper().visibility = View.GONE
+                        iCropView.getPaperRect().visibility = View.GONE
+                    }
+                }
     }
 
     fun enhance() {
-
-    }
-
-    fun black() {
-
-    }
-
-    fun reset() {
-
+        if (croppedBitmap == null) {
+            Log.i(TAG, "picture null?")
+            return
+        }
+        Observable.create(Observable.OnSubscribe { t: Subscriber<in Bitmap>? ->
+            t?.onNext(enhancePicture(croppedBitmap))
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { pc ->
+                    kotlin.run {
+                        enhancedPicture = pc
+                        iCropView.getCroppedPaper().setImageBitmap(pc)
+                    }
+                }
     }
 
     fun save() {

@@ -4,14 +4,42 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/paper"
+        android:id="@+id/picture_cropped"
         android:layout_width="wrap_content"
+        android:layout_centerInParent="true"
         android:layout_height="wrap_content" />
+
+    <ImageView
+        android:id="@+id/paper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY" />
 
     <com.pengke.paper.scanner.view.PaperRectangle
         android:id="@+id/paper_rect"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/colorTransparent" />
+
+    <TextView
+        android:id="@+id/enhance"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_alignParentEnd="true"
+        android:gravity="center"
+        android:background="?android:selectableItemBackground"
+        android:scaleType="centerCrop"
+        android:text="@string/enhance" />
+
+    <TextView
+        android:id="@+id/crop"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_toStartOf="@id/enhance"
+        android:layout_marginEnd="16dp"
+        android:background="?android:selectableItemBackground"
+        android:gravity="center"
+        android:text="@string/crop" />
 
 </RelativeLayout>

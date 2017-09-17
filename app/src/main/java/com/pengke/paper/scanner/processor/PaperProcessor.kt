@@ -1,6 +1,8 @@
 package com.pengke.paper.scanner.processor
 
+import android.graphics.Bitmap
 import android.util.Log
+import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import kotlin.collections.ArrayList
@@ -10,6 +12,56 @@ val TAG: String = "PaperProcessor"
 fun processPicture(previewFrame: Mat): Corners? {
     val contours = findContours(previewFrame)
     return getCorners(contours, previewFrame.size())
+}
+
+fun cropPicture(picture: Mat, pts: List<Point>): Mat {
+
+    pts.forEach { Log.i(TAG, "point: " + it.toString()) }
+    val tl = pts[0]
+    val tr = pts[1]
+    val br = pts[2]
+    val bl = pts[3]
+
+    val widthA = Math.sqrt(Math.pow(br.x - bl.x, 2.0) + Math.pow(br.y - bl.y, 2.0))
+    val widthB = Math.sqrt(Math.pow(tr.x - tl.x, 2.0) + Math.pow(tr.y - tl.y, 2.0))
+
+    val dw = Math.max(widthA, widthB)
+    val maxWidth = java.lang.Double.valueOf(dw)!!.toInt()
+
+
+    val heightA = Math.sqrt(Math.pow(tr.x - br.x, 2.0) + Math.pow(tr.y - br.y, 2.0))
+    val heightB = Math.sqrt(Math.pow(tl.x - bl.x, 2.0) + Math.pow(tl.y - bl.y, 2.0))
+
+    val dh = Math.max(heightA, heightB)
+    val maxHeight = java.lang.Double.valueOf(dh)!!.toInt()
+
+    val croppedPic = Mat(maxHeight, maxWidth, CvType.CV_8UC4)
+
+    val src_mat = Mat(4, 1, CvType.CV_32FC2)
+    val dst_mat = Mat(4, 1, CvType.CV_32FC2)
+
+    src_mat.put(0, 0, tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y)
+    dst_mat.put(0, 0, 0.0, 0.0, dw, 0.0, dw, dh, 0.0, dh)
+
+    val m = Imgproc.getPerspectiveTransform(src_mat, dst_mat)
+
+    Imgproc.warpPerspective(picture, croppedPic, m, croppedPic.size())
+    m.release()
+    src_mat.release()
+    dst_mat.release()
+    Log.i(TAG, "crop finish")
+    return croppedPic
+}
+
+fun enhancePicture(src: Bitmap?): Bitmap {
+    val src_mat = Mat()
+    Utils.bitmapToMat(src, src_mat)
+    Imgproc.cvtColor(src_mat, src_mat, Imgproc.COLOR_RGBA2GRAY)
+    Imgproc.adaptiveThreshold(src_mat, src_mat, 255.0, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 15, 15.0)
+    val result = Bitmap.createBitmap(src?.width ?: 1080, src?.height ?: 1920, Bitmap.Config.RGB_565)
+    Utils.matToBitmap(src_mat, result, true)
+    src_mat.release()
+    return result
 }
 
 
@@ -55,7 +107,6 @@ private fun getCorners(contours: ArrayList<MatOfPoint>, size: Size): Corners? {
             val approx = MatOfPoint2f()
             Imgproc.approxPolyDP(c2f, approx, 0.02 * peri, true)
             val points = approx.toArray().asList()
-            Log.i(TAG, "point size: " + points.size)
             // select biggest 4 angles polygon
             if (points.size >= 4) {
                 val foundPoints = sortPoints(points)
@@ -100,7 +151,6 @@ private fun sortPoints(points: List<Point>): List<Point> {
 
     return listOf(p0, p1, p2, p3)
 }
-
 
 private fun insideArea(rp: List<Point>, size: Size): Boolean {
 

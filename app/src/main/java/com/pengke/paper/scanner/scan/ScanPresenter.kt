@@ -21,6 +21,7 @@ import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
+import org.opencv.imgproc.Imgproc
 import rx.Observable
 import rx.Scheduler
 import rx.android.schedulers.AndroidSchedulers
@@ -88,16 +89,18 @@ class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
         display.getRealSize(point)
         val displayWidth = minOf(point.x, point.y)
         val displayHeight = maxOf(point.x, point.y)
-        val displayRatio = displayHeight.div(displayWidth.toFloat())
-        val previewRatio = size?.height?.toFloat() ?: 1920.div(size?.width?.toFloat() ?: 1080.toFloat())
-
+        val displayRatio = displayWidth.div(displayHeight.toFloat())
+        val previewRatio = size?.height?.toFloat()?.div(size.width.toFloat()) ?: displayRatio
         if (displayRatio > previewRatio) {
             val surfaceParams = iView.getSurfaceView().layoutParams
             surfaceParams.height = (point.y / displayRatio * previewRatio).toInt()
             iView.getSurfaceView().layoutParams = surfaceParams
         }
 
-        val pictureSize = mCamera?.parameters?.supportedPictureSizes?.maxBy { it.width.times(it.height) }
+        val supportPicSize = mCamera?.parameters?.supportedPictureSizes
+        supportPicSize?.sortByDescending { it.width.times(it.height) }
+        val pictureSize = supportPicSize?.find { it.height.toFloat().div(it.width.toFloat()) - previewRatio < 0.01 }
+
         param?.setPictureSize(pictureSize?.width ?: 1080, pictureSize?.height ?: 1920)
         val pm = context.packageManager
         if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
@@ -132,7 +135,7 @@ class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
                 .subscribeOn(proxySchedule)
                 .subscribe {
                     val pictureSize = p1?.parameters?.pictureSize
-
+                    Log.i(TAG, "picture size: " + pictureSize.toString())
                     val mat = Mat(Size(pictureSize?.width?.toDouble() ?: 1080.toDouble(),
                             pictureSize?.height?.toDouble() ?: 1920.toDouble()), CvType.CV_8U)
                     mat.put(0, 0, p0)
@@ -140,6 +143,7 @@ class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
                     Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
                     mat.release()
                     SourceManager.corners = processPicture(pic)
+                    Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
                     SourceManager.pic = pic
                     context.startActivity(Intent(context, CropActivity::class.java))
                     busy = false
