@@ -1,6 +1,11 @@
 package com.pengke.paper.scanner.scan
 
+import android.content.pm.PackageManager
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.support.v4.content.PermissionChecker
 import android.util.Log
+import android.util.TimeUtils
 import android.view.Display
 import android.view.SurfaceView
 import com.pengke.paper.scanner.R
@@ -9,10 +14,15 @@ import com.pengke.paper.scanner.view.PaperRectangle
 
 import kotlinx.android.synthetic.main.activity_scan.*
 import org.opencv.android.OpenCVLoader
+import java.util.jar.Manifest
 
 class ScanActivity : BaseActivity(), IScanView.Proxy {
 
+    private val REQUEST_CAMERA_PERMISSION = 0
+    private val EXIT_TIME = 2000
+
     private var mPresenter: ScanPresenter? = null
+    private var latestBackPressTime: Long = 0
 
 
     override fun provideContentViewId(): Int = R.layout.activity_scan
@@ -26,9 +36,14 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
             Log.i(TAG, "loading opencv error, exit")
             finish()
         }
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), REQUEST_CAMERA_PERMISSION)
+        }
+
         shut.setOnClickListener {
-            Log.i(TAG, "shut clicked")
-            mPresenter?.shut() }
+            mPresenter?.shut()
+        }
+        latestBackPressTime = System.currentTimeMillis()
     }
 
 
@@ -44,6 +59,23 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
 
     override fun exit() {
         finish()
+    }
+
+    override fun onBackPressed() {
+        if (System.currentTimeMillis().minus(latestBackPressTime) > EXIT_TIME) {
+            showMessage(R.string.press_again_logout)
+        } else {
+            super.onBackPressed()
+        }
+        latestBackPressTime = System.currentTimeMillis()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (requestCode == REQUEST_CAMERA_PERMISSION
+                && (grantResults[permissions.indexOf(android.Manifest.permission.CAMERA)] != PackageManager.PERMISSION_GRANTED)) {
+            showMessage(R.string.camera_grant)
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     override fun getDisplay(): Display = windowManager.defaultDisplay

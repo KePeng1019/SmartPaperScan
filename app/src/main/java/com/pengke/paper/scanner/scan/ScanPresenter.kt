@@ -160,7 +160,6 @@ class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
         Observable.just(p0)
                 .observeOn(proxySchedule)
                 .subscribe(Action1 {
-                    Log.i(TAG, "on process: " + Thread.currentThread().name)
                     Log.i(TAG, "start prepare paper")
                     val parameters = p1?.parameters
                     val width = parameters?.previewSize?.width
@@ -180,15 +179,12 @@ class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
                     } catch (e: IOException) {
                         e.printStackTrace()
                     }
-                    Log.i(TAG, "on process start")
                     val corners = processPicture(img)
                     busy = false
-                    Log.i(TAG, "on process complete: " + corners?.toString())
 
                     Observable.just(corners)
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(Action1 {
-                                Log.i(TAG, "draw paper rect")
                                 iView.getPaperRect().onCornersDetected(corners)
                             })
                 })
