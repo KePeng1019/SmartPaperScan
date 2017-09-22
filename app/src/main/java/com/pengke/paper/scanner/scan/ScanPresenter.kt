@@ -71,13 +71,28 @@ class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
         }
     }
 
-    override fun surfaceCreated(p0: SurfaceHolder?) {
+    fun updateCamera() {
+        if (null == mCamera) {
+            return
+        }
+        mCamera?.stopPreview()
+        try {
+            mCamera?.setPreviewDisplay(mSurfaceHolder)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return
+        }
+        mCamera?.setPreviewCallback(this)
+        mCamera?.startPreview()
+    }
+
+    fun initCamera() {
         try {
             mCamera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK)
         } catch (e: RuntimeException) {
             e.stackTrace
-            Toast.makeText(context, "open camera error", Toast.LENGTH_SHORT).show()
-            iView.exit()
+            Toast.makeText(context, "cannot open camera, please grant camera", Toast.LENGTH_SHORT).show()
+            return
         }
 
 
@@ -113,7 +128,10 @@ class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
 
         mCamera?.parameters = param
         mCamera?.setDisplayOrientation(90)
+    }
 
+    override fun surfaceCreated(p0: SurfaceHolder?) {
+        initCamera()
     }
 
     override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
@@ -191,21 +209,6 @@ class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
     }
 
     private fun getMaxResolution(): Camera.Size? = mCamera?.parameters?.supportedPreviewSizes?.maxBy { it.width }
-
-    private fun updateCamera() {
-        if (null == mCamera) {
-            return
-        }
-        mCamera?.stopPreview()
-        try {
-            mCamera?.setPreviewDisplay(mSurfaceHolder)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            return
-        }
-        mCamera?.setPreviewCallback(this)
-        mCamera?.startPreview()
-    }
 
 
 }

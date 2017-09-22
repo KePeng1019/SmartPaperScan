@@ -3,9 +3,7 @@ package com.pengke.paper.scanner.scan
 import android.content.pm.PackageManager
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.support.v4.content.PermissionChecker
 import android.util.Log
-import android.util.TimeUtils
 import android.view.Display
 import android.view.SurfaceView
 import com.pengke.paper.scanner.R
@@ -14,7 +12,6 @@ import com.pengke.paper.scanner.view.PaperRectangle
 
 import kotlinx.android.synthetic.main.activity_scan.*
 import org.opencv.android.OpenCVLoader
-import java.util.jar.Manifest
 
 class ScanActivity : BaseActivity(), IScanView.Proxy {
 
@@ -72,8 +69,10 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (requestCode == REQUEST_CAMERA_PERMISSION
-                && (grantResults[permissions.indexOf(android.Manifest.permission.CAMERA)] != PackageManager.PERMISSION_GRANTED)) {
+                && (grantResults[permissions.indexOf(android.Manifest.permission.CAMERA)] == PackageManager.PERMISSION_GRANTED)) {
             showMessage(R.string.camera_grant)
+            mPresenter?.initCamera()
+            mPresenter?.updateCamera()
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
