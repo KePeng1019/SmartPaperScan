@@ -18,7 +18,8 @@ class PaperRectangle : View {
 
     private val rectPaint = Paint()
     private val circlePaint = Paint()
-    private var ratio: Double = 1.0
+    private var ratioX: Double = 1.0
+    private var ratioY: Double = 1.0
     private var tl: Point = Point()
     private var tr: Point = Point()
     private var br: Point = Point()
@@ -52,11 +53,13 @@ class PaperRectangle : View {
             invalidate()
             return
         }
+        ratioX = corners.size.width.div(measuredWidth)
+        ratioY = corners.size.height.div(measuredHeight)
         tl = corners.corners[0] ?: Point()
         tr = corners.corners[1] ?: Point()
         br = corners.corners[2] ?: Point()
         bl = corners.corners[3] ?: Point()
-
+        resize()
         path.reset()
         path.moveTo(tl.x.toFloat(), tl.y.toFloat())
         path.lineTo(tr.x.toFloat(), tr.y.toFloat())
@@ -73,13 +76,14 @@ class PaperRectangle : View {
         tr = corners?.corners?.get(1) ?: SourceManager.defaultTr
         br = corners?.corners?.get(2) ?: SourceManager.defaultBr
         bl = corners?.corners?.get(3) ?: SourceManager.defaultBl
-        ratio = size?.width?.div(1080.0) ?: 1.0
+        ratioX = size?.width?.div(measuredWidth) ?: 1.0
+        ratioY = size?.height?.div(measuredHeight) ?: 1.0
         resize()
         movePoints()
     }
 
-    public fun getCorners2Crop(): List<Point> {
-        reverSize()
+     fun getCorners2Crop(): List<Point> {
+        reverseSize()
         return listOf(tl, tr, br, bl)
     }
 
@@ -132,25 +136,26 @@ class PaperRectangle : View {
     }
 
 
+
     private fun resize() {
-        tl.x = tl.x.div(ratio)
-        tl.y = tl.y.div(ratio)
-        tr.x = tr.x.div(ratio)
-        tr.y = tr.y.div(ratio)
-        br.x = br.x.div(ratio)
-        br.y = br.y.div(ratio)
-        bl.x = bl.x.div(ratio)
-        bl.y = bl.y.div(ratio)
+        tl.x = tl.x.div(ratioX)
+        tl.y = tl.y.div(ratioY)
+        tr.x = tr.x.div(ratioX)
+        tr.y = tr.y.div(ratioY)
+        br.x = br.x.div(ratioX)
+        br.y = br.y.div(ratioY)
+        bl.x = bl.x.div(ratioX)
+        bl.y = bl.y.div(ratioY)
     }
 
-    private fun reverSize() {
-        tl.x = tl.x.times(ratio)
-        tl.y = tl.y.times(ratio)
-        tr.x = tr.x.times(ratio)
-        tr.y = tr.y.times(ratio)
-        br.x = br.x.times(ratio)
-        br.y = br.y.times(ratio)
-        bl.x = bl.x.times(ratio)
-        bl.y = bl.y.times(ratio)
+    private fun reverseSize() {
+        tl.x = tl.x.times(ratioX)
+        tl.y = tl.y.times(ratioY)
+        tr.x = tr.x.times(ratioX)
+        tr.y = tr.y.times(ratioY)
+        br.x = br.x.times(ratioX)
+        br.y = br.y.times(ratioY)
+        bl.x = bl.x.times(ratioX)
+        bl.y = bl.y.times(ratioY)
     }
 }

@@ -64,7 +64,6 @@ fun enhancePicture(src: Bitmap?): Bitmap {
     return result
 }
 
-
 private fun findContours(src: Mat): ArrayList<MatOfPoint> {
 
     val grayImage: Mat
