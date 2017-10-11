@@ -76,8 +76,8 @@ class PaperRectangle : View {
         tr = corners?.corners?.get(1) ?: SourceManager.defaultTr
         br = corners?.corners?.get(2) ?: SourceManager.defaultBr
         bl = corners?.corners?.get(3) ?: SourceManager.defaultBl
-        ratioX = size?.width?.div(measuredWidth) ?: 1.0
-        ratioY = size?.height?.div(measuredHeight) ?: 1.0
+        ratioX = size?.width?.div(1080) ?: 1.0
+        ratioY = size?.height?.div(1860) ?: 1.0
         resize()
         movePoints()
     }
