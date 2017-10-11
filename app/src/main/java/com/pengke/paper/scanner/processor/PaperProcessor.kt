@@ -107,38 +107,15 @@ private fun getCorners(contours: ArrayList<MatOfPoint>, size: Size): Corners? {
             Imgproc.approxPolyDP(c2f, approx, 0.02 * peri, true)
             val points = approx.toArray().asList()
             // select biggest 4 angles polygon
-            if (points.size >= 4) {
+            if (points.size == 4) {
                 val foundPoints = sortPoints(points)
-                if (insideArea(foundPoints, size)) {
-                    return Corners(foundPoints, size)
-                }
+                return Corners(foundPoints, size)
             }
         } else {
             return null
         }
     }
-//    for (p in contours) {
-//        when (contours.indexOf(p)) {
-//            in 0..5 -> {
-//                val c2f = MatOfPoint2f(*p.toArray())
-//                val peri = Imgproc.arcLength(c2f, true)
-//                val approx = MatOfPoint2f()
-//                Imgproc.approxPolyDP(c2f, approx, 0.02 * peri, true)
-//                val points = approx.toArray().asList()
-//                Log.i(TAG, "point size: " + points.size)
-//                // select biggest 4 angles polygon
-//                if (points.size >= 4) {
-//                    val foundPoints = sortPoints(points)
-//                    if (insideArea(foundPoints, size)) {
-//                        return Corners(foundPoints, size)
-//                    }
-//                }
-//            }
-//            else -> {
-//                return null
-//            }
-//        }
-//    }
+
     return null
 }
 
