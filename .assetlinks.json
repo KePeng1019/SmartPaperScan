@@ -1,0 +1,25 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.duola.yunprint",
+    "sha256_cert_fingerprints":
+    ["44:E7:98:EA:0A:95:74:20:D6:A7:01:AC:B3:6E:0C:5A:4C:AE:9E:55:43:68:6E:A2:CD:27:B6:2E:B0:2B:16:91"]
+  }
+},
+{
+  "relation": ["delegate_permission/common.get_login_creds"],
+  "target": {
+    "namespace": "web",
+    "site": "https://github.com"
+  }
+},
+{
+  "relation": ["delegate_permission/common.get_login_creds"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.duola.yunprint",
+    "sha256_cert_fingerprints":
+    ["44:E7:98:EA:0A:95:74:20:D6:A7:01:AC:B3:6E:0C:5A:4C:AE:9E:55:43:68:6E:A2:CD:27:B6:2E:B0:2B:16:91"]
+  }
+}]
