@@ -11,5 +11,6 @@ you can detect paper on desktop like this
 
 
 # Addition
-code is written in kotlin, hope this project will be helpful to you.
+code is written in pure kotlin, hope this project will be helpful to you.
+previous version only work well on device of 1080 * 1920 resolution ratio, this bug fixed in this version.
 
