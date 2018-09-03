@@ -8,12 +8,11 @@ import kotlinx.android.synthetic.main.activity_crop.*
 
 class CropActivity : BaseActivity(), ICropView.Proxy {
 
-    private var mPresenter: CropPresenter? = null
+    private lateinit var mPresenter: CropPresenter
 
     override fun prepare() {
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        crop.setOnClickListener { mPresenter?.crop() }
-        enhance.setOnClickListener { mPresenter?.enhance() }
+        crop.setOnClickListener { mPresenter.crop() }
+        enhance.setOnClickListener { mPresenter.enhance() }
     }
 
     override fun provideContentViewId(): Int = R.layout.activity_crop

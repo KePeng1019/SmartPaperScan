@@ -7,7 +7,7 @@ import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import kotlin.collections.ArrayList
 
-val TAG: String = "PaperProcessor"
+const val TAG: String = "PaperProcessor"
 
 fun processPicture(previewFrame: Mat): Corners? {
     val contours = findContours(previewFrame)

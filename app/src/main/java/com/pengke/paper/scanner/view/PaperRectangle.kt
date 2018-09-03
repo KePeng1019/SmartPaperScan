@@ -1,8 +1,10 @@
 package com.pengke.paper.scanner.view
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.DisplayMetrics
 import android.view.MotionEvent
 import org.opencv.core.Point
 import android.view.View
@@ -47,12 +49,7 @@ class PaperRectangle : View {
         circlePaint.style = Paint.Style.STROKE
     }
 
-    fun onCornersDetected(corners: Corners?) {
-        if (corners == null) {
-            path.reset()
-            invalidate()
-            return
-        }
+    fun onCornersDetected(corners: Corners) {
         ratioX = corners.size.width.div(measuredWidth)
         ratioY = corners.size.height.div(measuredHeight)
         tl = corners.corners[0] ?: Point()
@@ -69,6 +66,11 @@ class PaperRectangle : View {
         invalidate()
     }
 
+    fun onCornersNotDetected() {
+        path.reset()
+        invalidate()
+    }
+
     fun onCorners2Crop(corners: Corners?, size: Size?) {
 
         cropMode = true
@@ -76,13 +78,17 @@ class PaperRectangle : View {
         tr = corners?.corners?.get(1) ?: SourceManager.defaultTr
         br = corners?.corners?.get(2) ?: SourceManager.defaultBr
         bl = corners?.corners?.get(3) ?: SourceManager.defaultBl
-        ratioX = size?.width?.div(1080) ?: 1.0
-        ratioY = size?.height?.div(1860) ?: 1.0
+        val displayMetrics = DisplayMetrics()
+        (context as Activity).windowManager.defaultDisplay.getMetrics(displayMetrics)
+        //exclude status bar height
+        val statusBarHeight = getStatusBarHeight(context)
+        ratioX = size?.width?.div(displayMetrics.widthPixels) ?: 1.0
+        ratioY = size?.height?.div(displayMetrics.heightPixels - statusBarHeight) ?: 1.0
         resize()
         movePoints()
     }
 
-     fun getCorners2Crop(): List<Point> {
+    fun getCorners2Crop(): List<Point> {
         reverseSize()
         return listOf(tl, tr, br, bl)
     }
@@ -136,7 +142,6 @@ class PaperRectangle : View {
     }
 
 
-
     private fun resize() {
         tl.x = tl.x.div(ratioX)
         tl.y = tl.y.div(ratioY)
@@ -157,5 +162,21 @@ class PaperRectangle : View {
         br.y = br.y.times(ratioY)
         bl.x = bl.x.times(ratioX)
         bl.y = bl.y.times(ratioY)
+    }
+
+    private fun getNavigationBarHeight(pContext: Context): Int {
+        val resources = pContext.resources
+        val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        return if (resourceId > 0) {
+            resources.getDimensionPixelSize(resourceId)
+        } else 0
+    }
+
+    private fun getStatusBarHeight(pContext: Context): Int {
+        val resources = pContext.resources
+        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        return if (resourceId > 0) {
+            resources.getDimensionPixelSize(resourceId)
+        } else 0
     }
 }

@@ -14,7 +14,12 @@ import android.view.SurfaceHolder
 import android.widget.Toast
 import com.pengke.paper.scanner.SourceManager
 import com.pengke.paper.scanner.crop.CropActivity
+import com.pengke.paper.scanner.processor.Corners
 import com.pengke.paper.scanner.processor.processPicture
+import io.reactivex.Observable
+import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import org.opencv.android.Utils
 import org.opencv.core.Core
 import org.opencv.core.CvType
@@ -22,32 +27,22 @@ import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
-import rx.Observable
-import rx.Scheduler
-import rx.android.schedulers.AndroidSchedulers
-import rx.functions.Action1
-import rx.schedulers.Schedulers
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 
-class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
+class ScanPresenter constructor(private val context: Context, private val iView: IScanView.Proxy)
     : SurfaceHolder.Callback, Camera.PictureCallback, Camera.PreviewCallback {
     private val TAG: String = "ScanPresenter"
-    private val iView: IScanView.Proxy
-    private val context: Context
     private var mCamera: Camera? = null
-    private val mSurfaceHolder: SurfaceHolder
+    private val mSurfaceHolder: SurfaceHolder = iView.getSurfaceView().holder
     private val executor: ExecutorService
     private val proxySchedule: Scheduler
     private var busy: Boolean = false
 
     init {
-        this.iView = iView
-        this.context = context
-        mSurfaceHolder = iView.getSurfaceView().holder
         mSurfaceHolder.addCallback(this)
         executor = Executors.newSingleThreadExecutor()
         proxySchedule = Schedulers.from(executor)
@@ -177,12 +172,13 @@ class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
         busy = true
         Observable.just(p0)
                 .observeOn(proxySchedule)
-                .subscribe(Action1 {
+                .subscribe {
                     Log.i(TAG, "start prepare paper")
                     val parameters = p1?.parameters
                     val width = parameters?.previewSize?.width
                     val height = parameters?.previewSize?.height
-                    val yuv = YuvImage(p0, parameters?.previewFormat ?: 0, width ?: 1080, height ?: 1920, null)
+                    val yuv = YuvImage(p0, parameters?.previewFormat ?: 0, width ?: 1080, height
+                            ?: 1920, null)
                     val out = ByteArrayOutputStream()
                     yuv.compressToJpeg(Rect(0, 0, width ?: 1080, height ?: 1920), 100, out)
                     val bytes = out.toByteArray()
@@ -197,15 +193,24 @@ class ScanPresenter constructor(context: Context, iView: IScanView.Proxy)
                     } catch (e: IOException) {
                         e.printStackTrace()
                     }
-                    val corners = processPicture(img)
-                    busy = false
 
-                    Observable.just(corners)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(Action1 {
-                                iView.getPaperRect().onCornersDetected(corners)
+                    Observable.create<Corners> {
+                        val corner = processPicture(img)
+                        busy = false
+                        if (null != corner) {
+                            it.onNext(corner)
+                        } else {
+                            it.onError(Throwable("paper not detected"))
+                        }
+                    }.observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({
+                                iView.getPaperRect().onCornersDetected(it)
+
+                            }, {
+                                iView.getPaperRect().onCornersNotDetected()
                             })
-                })
+                }
+
     }
 
     private fun getMaxResolution(): Camera.Size? = mCamera?.parameters?.supportedPreviewSizes?.maxBy { it.width }

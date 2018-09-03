@@ -18,7 +18,7 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
     private val REQUEST_CAMERA_PERMISSION = 0
     private val EXIT_TIME = 2000
 
-    private var mPresenter: ScanPresenter? = null
+    private lateinit var mPresenter: ScanPresenter
     private var latestBackPressTime: Long = 0
 
 
@@ -38,7 +38,7 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
         }
 
         shut.setOnClickListener {
-            mPresenter?.shut()
+            mPresenter.shut()
         }
         latestBackPressTime = System.currentTimeMillis()
     }
@@ -46,12 +46,12 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
 
     override fun onStart() {
         super.onStart()
-        mPresenter?.start()
+        mPresenter.start()
     }
 
     override fun onStop() {
         super.onStop()
-        mPresenter?.stop()
+        mPresenter.stop()
     }
 
     override fun exit() {
@@ -71,8 +71,8 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
         if (requestCode == REQUEST_CAMERA_PERMISSION
                 && (grantResults[permissions.indexOf(android.Manifest.permission.CAMERA)] == PackageManager.PERMISSION_GRANTED)) {
             showMessage(R.string.camera_grant)
-            mPresenter?.initCamera()
-            mPresenter?.updateCamera()
+            mPresenter.initCamera()
+            mPresenter.updateCamera()
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
