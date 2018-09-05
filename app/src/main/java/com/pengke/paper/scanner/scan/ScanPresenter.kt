@@ -103,15 +103,23 @@ class ScanPresenter constructor(private val context: Context, private val iView:
         val previewRatio = size?.height?.toFloat()?.div(size.width.toFloat()) ?: displayRatio
         if (displayRatio > previewRatio) {
             val surfaceParams = iView.getSurfaceView().layoutParams
-            surfaceParams.height = (point.y / displayRatio * previewRatio).toInt()
+            surfaceParams.height = (displayHeight / displayRatio * previewRatio).toInt()
             iView.getSurfaceView().layoutParams = surfaceParams
         }
 
         val supportPicSize = mCamera?.parameters?.supportedPictureSizes
         supportPicSize?.sortByDescending { it.width.times(it.height) }
-        val pictureSize = supportPicSize?.find { it.height.toFloat().div(it.width.toFloat()) - previewRatio < 0.01 }
+        var pictureSize = supportPicSize?.find { it.height.toFloat().div(it.width.toFloat()) - previewRatio < 0.01 }
 
-        param?.setPictureSize(pictureSize?.width ?: 1080, pictureSize?.height ?: 1920)
+        if (null == pictureSize) {
+            pictureSize = supportPicSize?.get(0)
+        }
+
+        if (null == pictureSize) {
+            Log.e(TAG, "can not get picture size")
+        } else {
+            param?.setPictureSize(pictureSize.width, pictureSize.height)
+        }
         val pm = context.packageManager
         if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
             param?.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
@@ -149,8 +157,8 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                 .subscribe {
                     val pictureSize = p1?.parameters?.pictureSize
                     Log.i(TAG, "picture size: " + pictureSize.toString())
-                    val mat = Mat(Size(pictureSize?.width?.toDouble() ?: 1080.toDouble(),
-                            pictureSize?.height?.toDouble() ?: 1920.toDouble()), CvType.CV_8U)
+                    val mat = Mat(Size(pictureSize?.width?.toDouble() ?: 1920.toDouble(),
+                            pictureSize?.height?.toDouble() ?: 1080.toDouble()), CvType.CV_8U)
                     mat.put(0, 0, p0)
                     val pic = Imgcodecs.imdecode(mat, Imgcodecs.CV_LOAD_IMAGE_UNCHANGED)
                     Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
