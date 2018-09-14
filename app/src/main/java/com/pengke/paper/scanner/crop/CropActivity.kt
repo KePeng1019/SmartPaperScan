@@ -13,6 +13,7 @@ class CropActivity : BaseActivity(), ICropView.Proxy {
     override fun prepare() {
         crop.setOnClickListener { mPresenter.crop() }
         enhance.setOnClickListener { mPresenter.enhance() }
+        save.setOnClickListener { mPresenter.save() }
     }
 
     override fun provideContentViewId(): Int = R.layout.activity_crop
