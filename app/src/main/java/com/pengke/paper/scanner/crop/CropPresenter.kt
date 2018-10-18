@@ -23,6 +23,10 @@ import org.opencv.android.Utils
 import org.opencv.core.Mat
 import java.io.File
 import java.io.FileOutputStream
+import android.provider.MediaStore
+import android.content.ContentValues
+
+
 
 const val IMAGES_DIR = "smart_scanner"
 
@@ -40,6 +44,17 @@ class CropPresenter(val context: Context, private val iCropView: ICropView.Proxy
                 ?: 1920, Bitmap.Config.ARGB_8888)
         Utils.matToBitmap(picture, bitmap, true)
         iCropView.getPaper().setImageBitmap(bitmap)
+    }
+
+    fun addImageToGallery(filePath: String, context: Context) {
+
+        val values = ContentValues()
+
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        values.put(MediaStore.MediaColumns.DATA, filePath)
+
+        context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
     }
 
     fun crop() {
@@ -103,6 +118,7 @@ class CropPresenter(val context: Context, private val iCropView: ICropView.Proxy
                 pic.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
                 outStream.flush()
                 outStream.close()
+                addImageToGallery(file.absolutePath, this.context)
                 Toast.makeText(context, "picture saved, path: ${file.absolutePath}", Toast.LENGTH_SHORT).show()
             } else {
                 val cropPic = croppedBitmap
@@ -112,6 +128,7 @@ class CropPresenter(val context: Context, private val iCropView: ICropView.Proxy
                     cropPic.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
                     outStream.flush()
                     outStream.close()
+                    addImageToGallery(file.absolutePath, this.context)
                     Toast.makeText(context, "picture saved, path: ${file.absolutePath}", Toast.LENGTH_SHORT).show()
                 }
             }
