@@ -185,10 +185,10 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     val parameters = p1?.parameters
                     val width = parameters?.previewSize?.width
                     val height = parameters?.previewSize?.height
-                    val yuv = YuvImage(p0, parameters?.previewFormat ?: 0, width ?: 1080, height
-                            ?: 1920, null)
+                    val yuv = YuvImage(p0, parameters?.previewFormat ?: 0, width ?: 320, height
+                            ?: 480, null)
                     val out = ByteArrayOutputStream()
-                    yuv.compressToJpeg(Rect(0, 0, width ?: 1080, height ?: 1920), 100, out)
+                    yuv.compressToJpeg(Rect(0, 0, width ?: 320, height ?: 480), 100, out)
                     val bytes = out.toByteArray()
                     val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
 
@@ -205,7 +205,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     Observable.create<Corners> {
                         val corner = processPicture(img)
                         busy = false
-                        if (null != corner) {
+                        if (null != corner && corner.corners.size == 4) {
                             it.onNext(corner)
                         } else {
                             it.onError(Throwable("paper not detected"))
