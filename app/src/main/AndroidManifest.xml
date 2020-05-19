@@ -11,6 +11,7 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/ic_donut_small_light_blue_500_24dp"
         android:supportsRtl="true"
+        android:screenOrientation="portrait"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
@@ -28,6 +29,7 @@
             android:name=".crop.CropActivity"
             android:label="@string/crop"
             android:launchMode="singleTask"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 

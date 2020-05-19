@@ -3,7 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/SmartPaperScan.iml" filepath="$PROJECT_DIR$/SmartPaperScan.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/SmartPaperScan-app.iml" filepath="$PROJECT_DIR$/app/SmartPaperScan-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/openCVLibrary320/SmartPaperScan-openCVLibrary320.iml" filepath="$PROJECT_DIR$/openCVLibrary320/SmartPaperScan-openCVLibrary320.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fork-SmartPaperScan.iml" filepath="$PROJECT_DIR$/fork-SmartPaperScan.iml" />
       <module fileurl="file://$PROJECT_DIR$/openCVLibrary320/openCVLibrary320.iml" filepath="$PROJECT_DIR$/openCVLibrary320/openCVLibrary320.iml" />
     </modules>
   </component>

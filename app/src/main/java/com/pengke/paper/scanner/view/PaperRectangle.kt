@@ -5,11 +5,13 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.MotionEvent
-import org.opencv.core.Point
 import android.view.View
 import com.pengke.paper.scanner.SourceManager
 import com.pengke.paper.scanner.processor.Corners
+import com.pengke.paper.scanner.processor.TAG
+import org.opencv.core.Point
 import org.opencv.core.Size
 
 
@@ -56,6 +58,9 @@ class PaperRectangle : View {
         tr = corners.corners[1] ?: Point()
         br = corners.corners[2] ?: Point()
         bl = corners.corners[3] ?: Point()
+
+        Log.i(TAG, "POINTS ------>  ${tl.toString()} corners")
+
         resize()
         path.reset()
         path.moveTo(tl.x.toFloat(), tl.y.toFloat())
