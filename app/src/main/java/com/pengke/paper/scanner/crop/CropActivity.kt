@@ -1,5 +1,6 @@
 package com.pengke.paper.scanner.crop
 
+import android.view.View
 import android.widget.ImageView
 import com.pengke.paper.scanner.R
 import com.pengke.paper.scanner.base.BaseActivity
@@ -11,9 +12,17 @@ class CropActivity : BaseActivity(), ICropView.Proxy {
     private lateinit var mPresenter: CropPresenter
 
     override fun prepare() {
-        crop.setOnClickListener { mPresenter.crop() }
-        enhance.setOnClickListener { mPresenter.enhance() }
-        save.setOnClickListener { mPresenter.save() }
+        crop.setOnClickListener {
+            crop.visibility = View.INVISIBLE
+            enhance.visibility = View.VISIBLE
+            mPresenter.crop()
+        }
+        enhance.setOnClickListener {
+            crop.visibility = View.INVISIBLE
+            enhance.visibility = View.INVISIBLE
+            mPresenter.enhance()
+        }
+        proceed.setOnClickListener { mPresenter.proceed() }
     }
 
     override fun provideContentViewId(): Int = R.layout.activity_crop

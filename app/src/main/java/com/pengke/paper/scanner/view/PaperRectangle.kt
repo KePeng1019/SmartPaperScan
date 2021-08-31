@@ -52,6 +52,7 @@ class PaperRectangle : View {
     }
 
     fun onCornersDetected(corners: Corners) {
+
         ratioX = corners.size.width.div(measuredWidth)
         ratioY = corners.size.height.div(measuredHeight)
         tl = corners.corners[0] ?: Point()
@@ -77,18 +78,31 @@ class PaperRectangle : View {
     }
 
     fun onCorners2Crop(corners: Corners?, size: Size?) {
-
-        cropMode = true
-        tl = corners?.corners?.get(0) ?: SourceManager.defaultTl
-        tr = corners?.corners?.get(1) ?: SourceManager.defaultTr
-        br = corners?.corners?.get(2) ?: SourceManager.defaultBr
-        bl = corners?.corners?.get(3) ?: SourceManager.defaultBl
+        if (corners == null) return
+        if (size == null) return
         val displayMetrics = DisplayMetrics()
         (context as Activity).windowManager.defaultDisplay.getMetrics(displayMetrics)
+
         //exclude status bar height
         val statusBarHeight = getStatusBarHeight(context)
-        ratioX = size?.width?.div(displayMetrics.widthPixels) ?: 1.0
-        ratioY = size?.height?.div(displayMetrics.heightPixels - statusBarHeight) ?: 1.0
+        var layoutWidth = displayMetrics.widthPixels
+        var layoutHeight = displayMetrics.heightPixels - statusBarHeight
+
+        val screenRatio = layoutWidth / layoutHeight
+        val paperRatio = size.width / size.height
+        if (screenRatio > paperRatio) {
+            layoutWidth = (size.width / size.height * layoutHeight).toInt()
+        } else {
+            layoutHeight = (size.height / size.width * layoutWidth).toInt()
+        }
+
+        cropMode = true
+        tl = corners.corners.get(0) ?: Point(8.0, 8.0)
+        tr = corners.corners.get(1) ?: Point(size.width - 8.0, 8.0)
+        br = corners.corners.get(2) ?: Point(size.width - 8.0, size.height - 8.0)
+        bl = corners.corners.get(3) ?: Point(8.0, size.height - 8.0)
+        ratioX = size.width.div(layoutWidth)
+        ratioY = size.height.div(layoutHeight)
         resize()
         movePoints()
     }
