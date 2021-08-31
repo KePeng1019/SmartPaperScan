@@ -39,11 +39,11 @@ class CropPresenter(val context: Context, private val iCropView: ICropView.Proxy
     private var croppedBitmap: Bitmap? = null
 
     init {
-        iCropView.getPaperRect().onCorners2Crop(corners, picture?.size())
         val bitmap = Bitmap.createBitmap(picture?.width() ?: 1080, picture?.height()
                 ?: 1920, Bitmap.Config.ARGB_8888)
         Utils.matToBitmap(picture, bitmap, true)
         iCropView.getPaper().setImageBitmap(bitmap)
+        iCropView.getPaperRect().onCorners2Crop(corners, picture?.size())
     }
 
     fun addImageToGallery(filePath: String, context: Context) {
@@ -101,37 +101,44 @@ class CropPresenter(val context: Context, private val iCropView: ICropView.Proxy
                 }
     }
 
-    fun save() {
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(context, "please grant write file permission and trya gain", Toast.LENGTH_SHORT).show()
-        } else {
-            val dir = File(Environment.getExternalStorageDirectory(), IMAGES_DIR)
-            if (!dir.exists()) {
-                dir.mkdirs()
-            }
-
-            //first save enhanced picture, if picture is not enhanced, save cropped picture, otherwise nothing to do
-            val pic = enhancedPicture
-            if (null != pic) {
-                val file = File(dir, "enhance_${SystemClock.currentThreadTimeMillis()}.jpeg")
-                val outStream = FileOutputStream(file)
-                pic.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
-                outStream.flush()
-                outStream.close()
-                addImageToGallery(file.absolutePath, this.context)
-                Toast.makeText(context, "picture saved, path: ${file.absolutePath}", Toast.LENGTH_SHORT).show()
-            } else {
-                val cropPic = croppedBitmap
-                if (null != cropPic) {
-                    val file = File(dir, "crop_${SystemClock.currentThreadTimeMillis()}.jpeg")
-                    val outStream = FileOutputStream(file)
-                    cropPic.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
-                    outStream.flush()
-                    outStream.close()
-                    addImageToGallery(file.absolutePath, this.context)
-                    Toast.makeText(context, "picture saved, path: ${file.absolutePath}", Toast.LENGTH_SHORT).show()
-                }
-            }
+    fun proceed() {
+        if (picture == null) {
+            Log.i(TAG, "picture null?")
+            return
         }
+
+        if (croppedBitmap != null) {
+            Log.i(TAG, "already cropped")
+            return
+        }
+
+        Observable.create<Mat> {
+            it.onNext(cropPicture(picture, iCropView.getPaperRect().getCorners2Crop()))
+        }
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { pc ->
+                    Log.i(TAG, "cropped picture: " + pc.toString())
+                    croppedPicture = pc
+                    croppedBitmap = Bitmap.createBitmap(pc.width(), pc.height(), Bitmap.Config.ARGB_8888)
+                    Utils.matToBitmap(pc, croppedBitmap)
+
+                    val dir = File(Environment.getExternalStorageDirectory(), IMAGES_DIR)
+                    if (!dir.exists()) {
+                        dir.mkdirs()
+                    }
+
+                    val cropPic = croppedBitmap
+                    if (null != cropPic) {
+                        val file = File(dir, "crop_${SystemClock.currentThreadTimeMillis()}.jpeg")
+                        val outStream = FileOutputStream(file)
+                        cropPic.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
+                        outStream.flush()
+                        outStream.close()
+                        addImageToGallery(file.absolutePath, this.context)
+
+
+                    }
+                }
     }
 }
